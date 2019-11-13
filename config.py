@@ -34,7 +34,8 @@ class TestingConfig(Config):
 	WTF_CSRF_ENABLED = False
 
 class ProductionConfig(Config):
-	SQLALCHEMY_DATABASE_URI = 'mysql://root:' + os.getenv('MYSQL_PASSWORD') + '@localhost/atl'
+	password = os.getenv('MYSQL_PASSWORD') or ""
+	SQLALCHEMY_DATABASE_URI = 'mysql://root:' + password + '@localhost/atl'
 
 	@classmethod
 	def init_app(cls, app):

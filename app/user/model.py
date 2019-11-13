@@ -2,6 +2,7 @@
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app
+from flask_login import UserMixin
 from datetime import datetime
 from .. import db
 
@@ -56,27 +57,37 @@ class Role(db.Model):
         # 默认的角色
         default_role = 'User'
         for r in roles:
-		    role = Role.query.filter_by(name=r).first()
-			if role is None:
-				role = Role(name=r)
-			role.reset_permissions()
-			for perm in roles[r]:
-				role.add_permission(perm)
-			role.default = (role.name == default_role)
-			db.session.add(role)
-		db.session.commit()
+            role = Role.query.filter_by(name=r).first()
+            if role is None:
+                role = Role(name=r)
+            role.reset_permissions()
+            for perm in roles[r]:
+                role.add_permission(perm)
+            role.default = (role.name == default_role)
+            db.session.add(role)
+        db.session.commit()
+    
+    def to_json(self):
+        json_role = {
+            'id': self.id,
+            'name': self.name,
+            'permissions': self.permissions,
+        }
+        return json_role
 
 class Follow(db.Model):
     __tablename__ = 'follows'
-	follower_id = db.Column(db.Integer, db.ForeignKey('users.id')	, primary_key=True)
-	followed_id = db.Column(db.Integer, db.ForeignKey('users.id')	, primary_key=True)
-	timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    follower_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    followed_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(64), unique=True, index=True)
+    email = db.Column(db.String(64))
     username = db.Column(db.String(64), unique=True, index=True)
+    mobile = db.Column(db.String(64))
     password_hash = db.Column(db.String(128))
     avatar = db.Column(db.String(64))
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
@@ -100,6 +111,9 @@ class User(UserMixin, db.Model):
     # Follow.followed_id 是被关注的一方，返回用于作为被关注一方的数据集合，就是谁关注了我
     followers = db.relationship('Follow',
         foreign_keys=[Follow.followed_id],
+        backref=db.backref('followed', lazy='joined'),
+        lazy='dynamic',
+        cascade='all, delete-orphan')
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
@@ -110,10 +124,10 @@ class User(UserMixin, db.Model):
                 self.role = Role.query.filter_by(default=True).first()
      
     def can(self, perm):
-		return self.role is not None and self.role.has_permission(perm)
+        return self.role is not None and self.role.has_permission(perm)
 
-	def is_administrator(self):
-		return self.can(Permission.ADMIN)
+    def is_administrator(self):
+        return self.can(Permission.ADMIN)
 
     # 方法生成一个令牌，有效期默认为一小时
     def generate_auth_token(self, expiration=3600):
@@ -121,13 +135,13 @@ class User(UserMixin, db.Model):
         return s.dumps({'confirm': self.id}).decode('utf-8')
 
     @staticmethod
-	def verify_auth_token(token):
-		s = Serializer(current_app.config['SECRET_KEY'])
-		try:
-			data = s.loads(token)
-		except:
-			return None
-		return User.query.get(data['id'])
+    def verify_auth_token(token):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+        except:
+            return None
+        return User.query.get(data['id'])
 
     def confirm(self, token):
         s = Serializer(current_app.config['SECRET_KEY'])
@@ -177,54 +191,54 @@ class User(UserMixin, db.Model):
         try:
             data = s.loads(token.encode('utf-8'))
         except:
-			return False
-		if data.get('change_email') != self.id:
-			return False
-		new_email = data.get('new_email')
-		if new_email is None:
-			return False
-		if self.query.filter_by(email=new_email).first() is not None:
-			return False
-		self.email = new_email
-		db.session.add(self)
-		return True
+            return False
+        if data.get('change_email') != self.id:
+            return False
+        new_email = data.get('new_email')
+        if new_email is None:
+            return False
+        if self.query.filter_by(email=new_email).first() is not None:
+            return False
+        self.email = new_email
+        db.session.add(self)
+        return True
 
     def ping(self):
-		self.last_seen = datetime.utcnow()
-		db.session.add(self)
-		db.session.commit()
+        self.last_seen = datetime.utcnow()
+        db.session.add(self)
+        db.session.commit()
 
     def follow(self, user):
-		if not self.is_following(user):
-			f = Follow(follower=self, followed=user)
-			db.session.add(f)
+        if not self.is_following(user):
+            f = Follow(follower=self, followed=user)
+            db.session.add(f)
 
-	def unfollow(self, user):
-		f = self.followed.filter_by(followed_id=user.id).first()
-		if f:
-			db.session.delete(f)
-	
-	def is_following(self, user):
-		if user.id is None:
-			return False
-		return self.followed.filter_by(
-			followed_id=user.id
-		).first() is not None
-	
-	def is_followed_by(self, user):
-		if user.id is None:
-			return False
-		return self.followers.filter_by(
-			follower_id=user.id).first() is not None
+    def unfollow(self, user):
+        f = self.followed.filter_by(followed_id=user.id).first()
+        if f:
+            db.session.delete(f)
 
-	def __repr__(self):
-		return '<User %r>' % self.username
+    def is_following(self, user):
+        if user.id is None:
+            return False
+        return self.followed.filter_by(
+            followed_id=user.id
+        ).first() is not None
+
+    def is_followed_by(self, user):
+        if user.id is None:
+            return False
+        return self.followers.filter_by(
+            follower_id=user.id).first() is not None
+
+    def __repr__(self):
+        return '<User %r>' % self.username
 
     def to_json(self):
-		json_user = {
-			#'url': url_for('api.get_user', id=self.id),
-			'username': self.username,
-			'member_since': self.member_since,
-			'last_seen': self.last_seen,
-		}
-		return json_user
+        json_user = {
+            #'url': url_for('api.get_user', id=self.id),
+            'username': self.username,
+            'member_since': self.member_since,
+            'last_seen': self.last_seen,
+        }
+        return json_user

@@ -3,7 +3,7 @@ import sys
 import click
 
 from app import create_app, db
-from app.models import User, Role
+from app.user.model import User, Role
 from flask_migrate import Migrate, upgrade
 
 # COV = None

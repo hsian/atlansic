@@ -1,10 +1,11 @@
 
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import current_app
+from flask import current_app, g
 from flask_login import UserMixin
 from datetime import datetime
 from .. import db
+from threading import Timer
 
 class Permission:
 	FOLLOW = 1
@@ -81,6 +82,37 @@ class Follow(db.Model):
     followed_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
+class Captcha(db.Model):
+    __tablename__ = 'captchas'
+    id = db.Column(db.Integer, primary_key=True)
+    mobile = db.Column(db.String(64))
+    code = db.Column(db.String(64))
+    valid = db.Column(db.Boolean, default=True)
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+
+    def __init__(self, **kwargs):
+        super(Captcha, self).__init__(**kwargs)
+        # current_app._get_current_object() 获取上下文的app
+        g.t = Timer(
+            current_app.config['CAPTCHA_EXPIRE'], 
+            self.expire, 
+            args=[current_app._get_current_object()])
+        g.t.start()
+
+    def expire(self, app):
+        with app.app_context():
+            self.valid = False
+            db.session.add(self)
+            db.session.commit()
+
+    @staticmethod
+    def validate_times(mobile):
+        captchas = Captcha.query.filter_by(
+            mobile = mobile, 
+            valid = True).all()
+        if len(captchas) >= 3:
+            return False
+        return True 
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'

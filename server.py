@@ -20,9 +20,10 @@ def make_shell_context():
 	return dict(db=db, User=User, Role=Role)
 
 @app.cli.command()
+@click.argument('module')	
 @click.option('--coverage/--no-coverage', default=False,
 			help='Run tests under code coverage.')
-def test(coverage):
+def test(coverage, module):
 	COV = None
 	
 	"""Run the unit tests."""
@@ -32,10 +33,10 @@ def test(coverage):
 		# os.execvp(sys.executable, [sys.executable] + sys.argv)
 		import coverage
 		COV = coverage.coverage(branch=True, include='app/*')
-		COV.start()
-		
+		COV.start()	
+
 	import unittest
-	tests =  unittest.TestLoader().discover('tests')
+	tests =  unittest.TestLoader().discover('app/%s' % module, pattern='test_*.py')
 	unittest.TextTestRunner(verbosity=2).run(tests)
 	
 	if COV:

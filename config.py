@@ -16,6 +16,7 @@ class Config:
 	SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 	PER_PAGE = 2
+	CAPTCHA_EXPIRE = 30.0
 
 	@staticmethod
 	def init_app(app):

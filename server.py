@@ -36,6 +36,9 @@ def test(coverage, module):
 		COV.start()	
 
 	import unittest
+	# if module == 'all':
+	# 	tests =  unittest.TestLoader().discover('app', pattern='*/test_*.py')
+	# else:
 	tests =  unittest.TestLoader().discover('app/%s' % module, pattern='test_*.py')
 	unittest.TextTestRunner(verbosity=2).run(tests)
 	

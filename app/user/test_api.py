@@ -20,34 +20,10 @@ class APITestCase(unittest.TestCase):
         db.drop_all()
         self.app_context.pop()
 
-    def test_captcha(self):
-        res = self.client.post(
-            '/api/user/captcha/',
-            data = json.dumps({ 'mobile': '1234' }),
-            headers = {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        )
-        # 退出测试环境修改验证码valid的线程。
-        g.t.cancel()
-        self.assertEqual(res.status_code, 200)
-
-    def test_register(self):
-        self.test_captcha()
-        res = self.client.post(
-            '/api/user/register/',
-            data = json.dumps({
-                'username': '1234',
-                'password': '123',
-                'captcha': '2233'
-            }),
-            headers = {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
+    def test_roles(self):
+        res = self.client.get(
+            '/api/user/roles/'
         )
         self.assertEqual(res.status_code, 200)
 
-    def test_login(self):
-        pass
+   

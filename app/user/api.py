@@ -3,7 +3,7 @@ from . import user
 from .model import User, Role, Captcha
 from ..errors import bad_request, unauthorized
 from .. import db
-from threading import Timer
+
 
 @user.route("/roles/")
 def get_roles():
@@ -11,102 +11,37 @@ def get_roles():
     return jsonify({
         "roles": [role.to_json() for role in roles]
     })
-
-@user.route('/captcha/', methods=['POST'])
-def get_captcha():
-    # 先查询是否验证码还有效,有效的话就就不要通过接口发送验证码了,毕竟要钱的
-    fake_code = 2233
-
-    mobile = request.json['mobile']
-    if mobile is None:
-        return bad_request("手机号码不能空")
     
-    if Captcha.validate_times(mobile) is False:
-        return bad_request("发送频繁，请稍后再试")
+# @desc: follow and unfollow
+# @param:  int:id  | 要关注的用户id
+@user.route('/user_follow/<int:id>')
+def user_follow(id):
+    pass
 
-    # 验证码虽然一样，但是还是会写入到数据库中的，因为会验证次数
-    captcha = Captcha(
-        mobile = mobile,
-        code = fake_code
-    )
-    db.session.add(captcha)
-    db.session.commit()
+# @desc: 用户关注了谁，只能查看自己
+@user.route('/user_followed/')
+def user_followed():
+    pass
 
-    return jsonify({
-        'message': '验证码发送成功'
-    })
+# @desc 谁关注了该用户
+@user.route('/user_followers/<int:id>')
+def user_followers():
+    pass
 
-@user.route('/register/', methods=['POST'])
-def register():
-    try:
-        form = request.json
-        username, password, captcha = form['username'], form['password'], \
-            form['captcha']
+# @desc: g.current_user可以获取当前用户
+@user.route('/user/<int:id>')
+def get_user(id):
+    pass
 
-        # 正则判断
-        # re
+@user.route('/users/')
+def get_users():
+    pass
 
-        user = User.query.filter_by(username = username).first()
-        if user:
-            return bad_request("用户名重复")
+# @desc: g.current_user可以获取当前用户
+@user.route('/user_posts/<int:id>')
+def get_user_posts(id):
+    pass
 
-        c = Captcha.query.filter_by(
-            mobile = username,
-            code = captcha,
-            valid = True
-        ).order_by(Captcha.timestamp.desc()).first()
-
-        if not c or captcha != c.code:
-            return bad_request("验证码错误或已过期")
-
-        user = User(
-            username = username,
-            mobile = username,
-            password = password
-        )
-        db.session.add(user)
-        db.session.commit()
-            
-        return jsonify({
-            'message': "注册成功"
-        })
-    except Exception as e:
-        return bad_request('错误原因: %s' % repr(e))
-
-@user.route('/login/', methods=['POST'])
-def login():
-    try:
-        form = request.json
-        username, password, captcha = form.get('username'), form.get('password'), form.get('captcha')
-
-        if username is not None:
-            user = User.query.filter_by(username = username).first()
-            if not user:
-                return unauthorized('用户名不存在')
-
-        # 手机号码密码登录
-        if password is not None:
-            if user.verify_password(password):
-                g.current_user = user
-            else:
-                return unauthorized('密码错误')
-
-        # 手机号码短信验证码登录
-        if captcha is not None:
-            c = Captcha.query.filter_by(
-                mobile = username,
-                code = captcha,
-                valid = True
-            ).order_by(Captcha.timestamp.desc()).first()
-            if not c or captcha != c.code:
-                return bad_request("验证码错误或已过期")
-            else:
-                g.current_user = user
-
-        return jsonify({
-            'token': g.current_user.generate_auth_token(expiration=3600),
-            'expiration': 3600,
-            'message': "登录成功"
-        })
-    except Exception as e:
-        return bad_request('错误原因：%s' % repr(e))
+@user.route('/user_comments/<int:id>')
+def get_user_comments(id):
+    pass

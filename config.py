@@ -13,9 +13,10 @@ class Config:
 	MAIL_SENDER = '407775611@qq.com'
 	MAIL_SUBJECT_PREFIX = 'Learn Flask'
 
+	ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', '13312882472')
 	SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-	PER_PAGE = 2
+	PER_PAGE = 5
 	CAPTCHA_EXPIRE = 30.0
 
 	@staticmethod

@@ -1,9 +1,22 @@
 from flask import jsonify, request, g
-from . import auth
+from . import auth, TokenAuth
 from ..user.model import User, Role, Captcha
 from ..errors import bad_request, unauthorized
 from .. import db
 from threading import Timer
+
+# auth.login_required修饰的函数会先校验token
+@TokenAuth.verify_token
+def verify_token(token):
+    if token == '' or token is None:
+        return False
+    g.current_user = User.verify_auth_token(token)
+    g.token_used = True
+    return g.current_user is not None # True
+
+@TokenAuth.error_handler
+def auth_error():
+    return unauthorized('Invalid credentials')
 
 @auth.route('/captcha/', methods=['POST'])
 def get_captcha():

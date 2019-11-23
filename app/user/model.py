@@ -4,8 +4,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app, g
 from flask_login import UserMixin
 from datetime import datetime
-from .. import db
 from threading import Timer
+from .. import db
+from ..message.model import Message
 
 class Permission:
 	FOLLOW = 1
@@ -147,10 +148,22 @@ class User(UserMixin, db.Model):
         lazy='dynamic',
         cascade='all, delete-orphan')
 
+    send_messages = db.relationship('Message',
+        foreign_keys=[Message.sender_id],
+        backref=db.backref('follower', lazy='joined'),
+        lazy='dynamic',
+        cascade='all, delete-orphan')
+
+    receive_messages = db.relationship('Message',
+        foreign_keys=[Message.receiver_id],
+        backref=db.backref('follower', lazy='joined'),
+        lazy='dynamic',
+        cascade='all, delete-orphan')
+
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
         if self.role is None:
-            if self.email == current_app.config['MAIL_SENDER']:
+            if self.email == current_app.config['ADMIN_USERNAME']:
                 self.role = Role.query.filter_by(name='Administrator').first()
             if self.role is None:
                 self.role = Role.query.filter_by(default=True).first()
@@ -164,7 +177,7 @@ class User(UserMixin, db.Model):
     # 方法生成一个令牌，有效期默认为一小时
     def generate_auth_token(self, expiration=3600):
         s = Serializer(current_app.config['SECRET_KEY'], expiration)
-        return s.dumps({'confirm': self.id}).decode('utf-8')
+        return s.dumps({'id': self.id}).decode('utf-8')
 
     @staticmethod
     def verify_auth_token(token):
@@ -173,6 +186,7 @@ class User(UserMixin, db.Model):
             data = s.loads(token)
         except:
             return None
+        print(data)
         return User.query.get(data['id'])
 
     def confirm(self, token):
@@ -181,7 +195,7 @@ class User(UserMixin, db.Model):
             data = s.loads(token.encode('utf-8'))
         except:
             return False
-        if data.get('confirm') != self.id:
+        if data.get('id') != self.id:
             return False
         self.confirmed = True
         db.session.add(self)

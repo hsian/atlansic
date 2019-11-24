@@ -27,16 +27,7 @@ def create_app(config_name):
 	db.init_app(app)
 	login_manager.init_app(app)
 
-	# from .main import main as main_blueprint
-	# app.register_blueprint(main_blueprint)
-
-	from .user import user as user_blueprint
-	app.register_blueprint(user_blueprint, url_prefix="/api/user")
-
-	from .auth import auth as auth_blueprint
-	app.register_blueprint(auth_blueprint, url_prefix="/api/auth")
-
-	from .message import message_blueprint
-	app.register_blueprint(message_blueprint, url_prefix="/api/message")
+	from .api import api as api_blueprint
+	app.register_blueprint(api_blueprint, url_prefix="/api")
 
 	return app

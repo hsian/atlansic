@@ -1,19 +1,13 @@
 
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import current_app, g
+from flask import current_app, g, url_for
 from flask_login import UserMixin
 from datetime import datetime
 from threading import Timer
 from .. import db
-from ..message.model import Message
-
-class Permission:
-	FOLLOW = 1
-	COMMENT = 2
-	WRITE = 4
-	MODERATE = 8
-	ADMIN = 16
+from .messages import Message
+from .permissions import Permission
 
 class Role(db.Model):
     __tablename__ = 'roles'
@@ -150,20 +144,20 @@ class User(UserMixin, db.Model):
 
     send_messages = db.relationship('Message',
         foreign_keys=[Message.sender_id],
-        backref=db.backref('follower', lazy='joined'),
+        backref=db.backref('sender', lazy='joined'),
         lazy='dynamic',
         cascade='all, delete-orphan')
 
     receive_messages = db.relationship('Message',
         foreign_keys=[Message.receiver_id],
-        backref=db.backref('follower', lazy='joined'),
+        backref=db.backref('receiver', lazy='joined'),
         lazy='dynamic',
-        cascade='all, delete-orphan')
+        cascade='all, delete-orphan') 
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
         if self.role is None:
-            if self.email == current_app.config['ADMIN_USERNAME']:
+            if self.username == current_app.config['ADMIN_USERNAME']:
                 self.role = Role.query.filter_by(name='Administrator').first()
             if self.role is None:
                 self.role = Role.query.filter_by(default=True).first()
@@ -186,7 +180,6 @@ class User(UserMixin, db.Model):
             data = s.loads(token)
         except:
             return None
-        print(data)
         return User.query.get(data['id'])
 
     def confirm(self, token):
@@ -282,8 +275,10 @@ class User(UserMixin, db.Model):
 
     def to_json(self):
         json_user = {
-            #'url': url_for('api.get_user', id=self.id),
+            'url': url_for('api.get_user', id=self.id),
+            'id': self.id,
             'username': self.username,
+            'avatar': self.avatar,
             'member_since': self.member_since,
             'last_seen': self.last_seen,
         }

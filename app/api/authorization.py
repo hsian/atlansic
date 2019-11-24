@@ -1,12 +1,15 @@
 from flask import jsonify, request, g
-from . import auth, TokenAuth
-from ..user.model import User, Role, Captcha
+from threading import Timer
+from flask_httpauth import HTTPBasicAuth, HTTPTokenAuth
+from ..models import User, Role, Captcha
 from ..errors import bad_request, unauthorized
 from .. import db
-from threading import Timer
+from . import api
+
+auth = HTTPTokenAuth() 
 
 # auth.login_required修饰的函数会先校验token
-@TokenAuth.verify_token
+@auth.verify_token
 def verify_token(token):
     if token == '' or token is None:
         return False
@@ -14,11 +17,11 @@ def verify_token(token):
     g.token_used = True
     return g.current_user is not None # True
 
-@TokenAuth.error_handler
+@auth.error_handler
 def auth_error():
     return unauthorized('Invalid credentials')
 
-@auth.route('/captcha/', methods=['POST'])
+@api.route('/captcha/', methods=['POST'])
 def get_captcha():
     # 先查询是否验证码还有效,有效的话就不用生成新的验证码了
     fake_code = 2233
@@ -42,7 +45,7 @@ def get_captcha():
         'message': '验证码发送成功'
     })
 
-@auth.route('/register/', methods=['POST'])
+@api.route('/register/', methods=['POST'])
 def register():
     try:
         form = request.json
@@ -79,7 +82,7 @@ def register():
     except Exception as e:
         return bad_request('错误原因: %s' % repr(e))
 
-@auth.route('/login/', methods=['POST'])
+@api.route('/login/', methods=['POST'])
 def login():
     try:
         form = request.json

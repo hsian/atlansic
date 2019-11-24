@@ -4,7 +4,7 @@ import re
 from base64 import b64encode
 from flask import g
 from app import create_app, db
-from app.user.model import Captcha, Role, User
+from app.models import Captcha, Role, User
 
 class APITestCase(unittest.TestCase):
     def setUp(self):
@@ -22,7 +22,7 @@ class APITestCase(unittest.TestCase):
 
     def test_captcha(self):
         res = self.client.post(
-            '/api/auth/captcha/',
+            '/api/captcha/',
             data = json.dumps({ 'mobile': '1234' }),
             headers = {
                 'Accept': 'application/json',
@@ -36,7 +36,7 @@ class APITestCase(unittest.TestCase):
     def test_register(self):
         self.test_captcha()
         res = self.client.post(
-            '/api/auth/register/',
+            '/api/register/',
             data = json.dumps({
                 'username': '1234',
                 'password': '123',

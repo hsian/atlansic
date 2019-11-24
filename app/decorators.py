@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import abort
+from flask import abort, g
 from flask_login import current_user
 from .models import Permission
 
@@ -9,7 +9,7 @@ def permission_required(permission):
         # 装饰器函数
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            if not current_user.can(permission):
+            if not g.current_user.can(permission):
                 # 报错403
                     abort(403)
             return f(*args, **kwargs)

@@ -4,7 +4,7 @@ import re
 from base64 import b64encode
 from flask import g
 from app import create_app, db
-from app.user.model import Captcha, Role, User
+from app.models import Captcha, Role, User
 
 class APITestCase(unittest.TestCase):
     def setUp(self):
@@ -22,7 +22,7 @@ class APITestCase(unittest.TestCase):
 
     def test_roles(self):
         res = self.client.get(
-            '/api/user/roles/'
+            '/api/roles/'
         )
         self.assertEqual(res.status_code, 200)
 

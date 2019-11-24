@@ -3,7 +3,7 @@ import sys
 import click
 
 from app import create_app, db
-from app.user.model import User, Role
+from app.models import User, Role
 from flask_migrate import Migrate, upgrade
 
 # COV = None
@@ -39,7 +39,7 @@ def test(coverage, module):
 	# if module == 'all':
 	# 	tests =  unittest.TestLoader().discover('app', pattern='*/test_*.py')
 	# else:
-	tests =  unittest.TestLoader().discover('app/%s' % module, pattern='test_*.py')
+	tests =  unittest.TestLoader().discover('app/tests/', pattern='test_%s.py' % module)
 	unittest.TextTestRunner(verbosity=2).run(tests)
 	
 	if COV:

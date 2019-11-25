@@ -12,6 +12,7 @@ class Post(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
     enable = db.Column(db.Boolean, default=True)
+    comments = db.relationship('Comment', backref='post', lazy='dynamic')
 
     def __repr__(self):
         return '<Post %r>' % self.title
@@ -23,6 +24,7 @@ class Post(db.Model):
             'body': self.body,
             'timestamp': self.timestamp,
             'author': self.author.to_json(),
-            'category': self.category.to_json()
+            'category': self.category.to_json(),
+            'tags': [tag.to_json() for tag in self.tags]
         }
         return json_post

@@ -128,6 +128,7 @@ class User(UserMixin, db.Model):
     member_since = db.Column(db.DateTime(), default=datetime.utcnow)
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
     posts = db.relationship('Post', backref='author', lazy='dynamic')
+    comments = db.relationship('Comment', backref='author', lazy='dynamic')
 
     # Follow.follower_id 是关注的一方, user.followed会返回Follow表的查询， follower_id作为主键查询。返回了我关注了谁
     followed = db.relationship('Follow',

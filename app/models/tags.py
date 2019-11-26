@@ -4,7 +4,7 @@ from .. import db
 from app.exceptions import ValidationError
 from flask import jsonify
 
-registrations = db.Table('registrations',
+tag_post_relation = db.Table('tag_post_relation',
     db.Column('tag_id', db.Integer, db.ForeignKey('tags.id')),
     db.Column('post_id', db.Integer, db.ForeignKey('posts.id'))
 )
@@ -15,7 +15,7 @@ class Tag(db.Model):
     name = db.Column(db.String(64), unique=True, index=True)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     posts = db.relationship('Post',
-        secondary=registrations,
+        secondary=tag_post_relation,
         backref=db.backref('tags', lazy='dynamic'),
         lazy='dynamic')
 

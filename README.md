@@ -25,13 +25,13 @@ pip freeze
 生成需求文件
 
 ```
-pip freeze >requirements.txt
+pip freeze >dependencies
 ```
 
 安装命令
 
 ```
-pip install -r requirements.txt
+pip install -r dependencies
 ```
 
 

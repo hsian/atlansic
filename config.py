@@ -19,6 +19,9 @@ class Config:
 	PER_PAGE = 5
 	CAPTCHA_EXPIRE = 30.0
 
+	MAX_CONTENT_LENGTH = 0.5 * 1024 * 1024 # 1024*1024是1M
+	UPLOAD_FOLDER = 'static'
+
 	@staticmethod
 	def init_app(app):
 		pass
@@ -26,7 +29,6 @@ class Config:
 class DevelopmentConfig(Config):
 	DEBUG = True
 	SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'data-dev.sqlite')
-		
 
 class TestingConfig(Config):
 	TESTING = True

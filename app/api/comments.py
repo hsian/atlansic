@@ -12,6 +12,7 @@ from .. import db
 def new_comment():
     try:
         form = request.json
+        print(form)
         body, post_id, parent_id = form['body'], form['post_id'], \
                 form.get('parent_id')
         comment = Comment(
@@ -67,7 +68,7 @@ def get_comments(id):
         if pagination.has_next:
             next = url_for('api.get_comments', id=id, page=page+1)
         return jsonify({
-            'posts': [comment.to_json() for comment in comments],
+            'comments': [comment.to_json() for comment in comments],
             'prev': prev,
             'next': next,
             'count': pagination.total

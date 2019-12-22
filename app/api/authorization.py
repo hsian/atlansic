@@ -21,6 +21,18 @@ def verify_token(token):
 def auth_error():
     return unauthorized('Invalid credentials')
 
+# 全部都要验证
+@api.after_request
+def after_request(environ):
+    try:
+        if g.current_user:
+            g.current_user.ping()
+    except Exception as e:
+        print(
+            bad_request('错误原因: %s' % repr(e))
+        )
+    return environ
+
 @api.route('/captcha/', methods=['POST'])
 def get_captcha():
     # 先查询是否验证码还有效,有效的话就不用生成新的验证码了
@@ -49,8 +61,8 @@ def get_captcha():
 def register():
     try:
         form = request.json
-        username, password, captcha = form['username'], form['password'], \
-            form['captcha']
+        username, password, name, captcha = form['username'], form['password'], \
+            form['name'], form['captcha']
 
         # 正则判断
         # re
@@ -68,10 +80,12 @@ def register():
         if not c or captcha != c.code:
             return bad_request("验证码错误或已过期")
 
+        # 注意目前的名字name是可以重复的
         user = User(
             username = username,
             mobile = username,
-            password = password
+            password = password,
+            name = name
         )
         db.session.add(user)
         db.session.commit()

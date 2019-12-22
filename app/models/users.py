@@ -280,7 +280,9 @@ class User(UserMixin, db.Model):
             'url': url_for('api.get_user', id=self.id),
             'id': self.id,
             'username': self.username,
+            'name': self.name,
             'avatar': self.avatar,
+            'email': self.email,
             'member_since': self.member_since,
             'last_seen': self.last_seen,
         }

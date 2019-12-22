@@ -71,6 +71,12 @@ def get_user(id):
     user = User.query.get_or_404(id)
     return jsonify(user.to_json())
 
+# @desc: 用户信息
+@api.route('/user_self/')
+@auth.login_required
+def get_user_self():
+    return jsonify(g.current_user.to_json())
+
 @api.route('/user_change_password/', methods=['POST'])
 @auth.login_required
 def user_change_password():

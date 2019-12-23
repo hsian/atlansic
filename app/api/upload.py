@@ -31,7 +31,7 @@ def upload():
             file.save(os.path.join(abspath, filename))
             return jsonify({
                 'message': '上传成功',
-                'url': os.path.join(path, filename).replace('\\', '/')
+                'url': '/' + os.path.join(path, filename).replace('\\', '/')
             })
     except Exception as e:
         return bad_request('错误原因：%s' % repr(e)) 

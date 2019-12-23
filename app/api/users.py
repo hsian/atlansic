@@ -104,8 +104,8 @@ def user_edit_profile():
         user = g.current_user
         form = request.json
         email, name, location, about_me, avatar, company, blog = form.get('email'), \
-            form.get('name'), form.get('location'), form.get('avatar'), \
-                form.get('about_me'),  form.get('company'), form.get('blog')
+            form.get('name'), form.get('location'), form.get('about_me'), \
+            form.get('avatar'), form.get('company'), form.get('blog')
 
         if name and re.match(r"^[a-zA-Z0-9\w\u4e00-\u9fcc]{2,6}$", name) is None:
             return bad_request('名字长度为2~6字符') 

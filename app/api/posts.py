@@ -27,6 +27,30 @@ def get_posts():
         'count': pagination.total
     })     
 
+@api.route('/posts_self/')
+@auth.login_required
+def get_posts_self():
+    page = request.args.get('page', 1, type=int)
+    page_size = request.args.get('pageSize', current_app.config['PER_PAGE'], type=int)
+    pagination = Post.query.filter(
+        and_(Post.author == g.current_user, Post.enable == True)
+        ).paginate(
+        page, per_page=page_size,
+        error_out=False)
+    posts = pagination.items
+    prev = None
+    if pagination.has_prev:
+        prev = url_for('api.get_posts', page=page-1)
+    next = None
+    if pagination.has_next:
+        next = url_for('api.get_posts', page=page+1)
+    return jsonify({
+        'posts': [post.to_json() for post in posts],
+        'prev': prev,
+        'next': next,
+        'count': pagination.total
+    })
+
 @api.route('/post/<int:id>')
 def get_post(id):
     post = Post.query.filter(and_(Post.id == id, Post.enable == True)).first()
@@ -44,7 +68,8 @@ def new_post():
             form['category_id']
 
         # 禁止提交到public栏目
-        if Category.is_public(category_id) is False:
+        if Category.is_public(category_id) is False and \
+            not g.current_user.can(Permission.ADMIN):
             return forbidden("权限不够")
         post = Post(
             title = title,

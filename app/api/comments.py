@@ -10,26 +10,49 @@ from .. import db
 @api.route('/new_comment/', methods=['POST'])
 @auth.login_required
 def new_comment():
-    try:
-        form = request.json
-        print(form)
-        body, post_id, parent_id = form['body'], form['post_id'], \
-                form.get('parent_id')
-        comment = Comment(
-            body = body,
-            author = g.current_user,
-            post_id = post_id,
-            parent_id = parent_id
-        )
-        db.session.add(comment)
-        db.session.commit()
-        return jsonify({
-            'message': '添加成功',
-            'data': comment.to_json()
-        })
+	try:
+		form = request.json
+		body, post_id, parent_id = form['body'], form['post_id'], \
+		form.get('parent_id')
+		comment = Comment(
+			body = body,
+			author = g.current_user,
+			post_id = post_id,
+			parent_id = parent_id
+		)
+		db.session.add(comment)
+		db.session.commit()
+		return jsonify({
+			'message': '添加成功',
+			'data': comment.to_json()
+		})
 
-    except Exception as e:
-        return bad_request('错误原因：%s' % repr(e))
+	except Exception as e:
+		return bad_request('错误原因：%s' % repr(e))
+
+@api.route('/new_temp_comment/', methods=['POST'])
+def new_temp_comment():
+	try:
+		form = request.json
+		body, post_id, parent_id, temp_name, temp_contact_type, temp_contact_value = form['body'], form['post_id'], \
+		form.get('parent_id'), form['temp_name'], form['temp_contact_type'], form['temp_contact_value']
+		comment = Comment(
+			body = body,
+			post_id = post_id,
+			parent_id = parent_id,
+			temp_name = temp_name,
+			temp_contact_type = temp_contact_type,
+			temp_contact_value = temp_contact_value
+		)
+		db.session.add(comment)
+		db.session.commit()
+		return jsonify({
+			'message': '添加成功',
+			'data': comment.to_json()
+		})
+
+	except Exception as e:
+		return bad_request('错误原因：%s' % repr(e))
 
 @api.route('/edit_comment/<int:id>', methods=['POST'])
 @auth.login_required
@@ -50,23 +73,26 @@ def edit_comment(id):
         return bad_request('错误原因：%s' % repr(e))
     
 
-@api.route('/get_comments/<int:id>')
-def get_comments(id):
+@api.route('/post_comments/<int:id>')
+def post_comments(id):
     try:
         post = Post.query.get_or_404(id)
         page = request.args.get('page', 1, type=int)
+        page_size = request.args.get('pageSize', current_app.config['PER_PAGE'], type=int)
         pagination = post.comments.filter(
-                and_(Comment.enable==True, Comment.level==1)
+                and_(Comment.level==1)
+            ).order_by(
+                Comment.timestamp.desc()
             ).paginate(
-            page, per_page=current_app.config['PER_PAGE'],
-            error_out=False)
+                page, per_page=page_size,
+                error_out=False)
         comments = pagination.items
         prev = None
         if pagination.has_prev:
-            prev = url_for('api.get_comments', id=id, page=page-1)
+            prev = url_for('api.post_comments', id=id, page=page-1)
         next = None
         if pagination.has_next:
-            next = url_for('api.get_comments', id=id, page=page+1)
+            next = url_for('api.post_comments', id=id, page=page+1)
         return jsonify({
             'comments': [comment.to_json() for comment in comments],
             'prev': prev,
@@ -75,3 +101,30 @@ def get_comments(id):
         })   
     except Exception as e:
         return bad_request('错误原因：%s' % repr(e))
+
+@api.route('/all_comments/')
+def all_comments():
+    try:
+        page = request.args.get('page', 1, type=int)
+        page_size = request.args.get('pageSize', current_app.config['PER_PAGE'], type=int)
+        pagination = Comment.query.order_by(
+                Comment.timestamp.desc()
+            ).paginate(
+                page, per_page=page_size,
+                error_out=False)
+        comments = pagination.items
+        prev = None
+        if pagination.has_prev:
+            prev = url_for('api.all_comments', id=id, page=page-1)
+        next = None
+        if pagination.has_next:
+            next = url_for('api.all_comments', id=id, page=page+1)
+        return jsonify({
+            'comments': [comment.to_json() for comment in comments],
+            'prev': prev,
+            'next': next,
+            'count': pagination.total
+        })   
+    except Exception as e:
+        return bad_request('错误原因：%s' % repr(e))
+

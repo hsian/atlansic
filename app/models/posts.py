@@ -25,6 +25,7 @@ class Post(db.Model):
             'timestamp': self.timestamp,
             'author': self.author.to_json(),
             'category': self.category.to_json(),
-            'tags': [tag.to_json() for tag in self.tags]
+            'tags': [tag.to_json() for tag in self.tags],
+            'enable': self.enable
         }
         return json_post

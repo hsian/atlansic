@@ -40,6 +40,7 @@ class APITestCase(unittest.TestCase):
             data = json.dumps({
                 'username': '1234',
                 'password': '123',
+                'name': 'test',
                 'captcha': '2233'
             }),
             headers = {
@@ -50,4 +51,16 @@ class APITestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
 
     def test_login(self):
-        pass
+        self.test_register()
+        res = self.client.post(
+            '/api/login/',
+            data = json.dumps({
+                'username': '1234',
+                'password': '123'
+            }),
+            headers = {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        )
+        self.assertEqual(res.status_code, 200)

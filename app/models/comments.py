@@ -16,6 +16,10 @@ class Comment(db.Model):
     chilren = db.relationship('Comment')
     level = db.Column(db.Integer)
 
+    temp_name = db.Column(db.String(64), unique=True)
+    temp_contact_type = db.Column(db.Integer, default=1)
+    temp_contact_value = db.Column(db.String(64), unique=True)
+
     def __init__(self, **kwargs):
         super(Comment, self).__init__(**kwargs)
         if self.parent_id is None or self.parent_id == '':
@@ -35,10 +39,11 @@ class Comment(db.Model):
             'body': self.body,
             'timestamp': self.timestamp,
             'enable': self.enable,
-            'author': self.author.to_json(),
+            #'author': self.author.to_json(),
             'post_id': self.post.to_json()['id'],
             'post_title': self.post.to_json()['title'],
             'children': [comment.to_json() for comment in self.chilren],
-            'level': self.level
+            'level': self.level,
+            'temp_name': self.temp_name
         }
         return json_comment

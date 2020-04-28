@@ -4,14 +4,16 @@ from . import api
 from ..errors import bad_request, forbidden
 from .authorization import auth
 from ..models import Category, User, Post, Permission, Tag
-from ..decorators import permission_required
+from ..decorators import permission_required, admin_required
 from .. import db
 
 @api.route('/posts/')
 def get_posts():
     page = request.args.get('page', 1, type=int)
-    pagination = Post.query.filter_by(enable=True).paginate(
-        page, per_page=current_app.config['PER_PAGE'],
+    page_size = request.args.get('pageSize', current_app.config['PER_PAGE'], type=int)
+    pagination = Post.query.join(Category, Category.id == Post.category_id).\
+    filter(and_(Post.enable == True, Category.enable == True)).order_by(Post.timestamp.desc()).paginate(
+        page, per_page=page_size,
         error_out=False)
     posts = pagination.items
     prev = None
@@ -60,7 +62,7 @@ def get_post(id):
 
 @api.route('/new_post/', methods=['POST'])
 @auth.login_required
-@permission_required(Permission.WRITE)
+@admin_required
 def new_post():
     try:
         form = request.json
@@ -104,7 +106,7 @@ def edit_post(id):
         post.title = request.json.get('title', post.title)
         post.body = request.json.get('body', post.body)
         post.enable = request.json.get('enable', post.enable)
-        # post.category_id = request.json.get('category_id', post.category_id)
+        post.category_id = request.json.get('category_id', post.category_id)
         tags = request.json.get('tags')
         if isinstance(tags,list):
             if len(tags) == 0 and post.tags:

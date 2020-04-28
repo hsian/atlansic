@@ -7,6 +7,7 @@ from ..decorators import admin_required
 from .authorization import auth
 from .. import db
 
+# @desc 新增栏目
 @api.route('/new_category/', methods=['POST'])
 @auth.login_required
 @admin_required
@@ -30,7 +31,7 @@ def new_category():
     except Exception as e:
         return bad_request('错误原因：%s' % repr(e))
 
-
+# @desc 编辑栏目
 @api.route('/edit_category/<int:id>', methods=['POST'])
 @auth.login_required
 @admin_required
@@ -51,6 +52,7 @@ def edit_category(id):
     except Exception as e:
         return bad_request('错误原因：%s' % repr(e))
 
+# @desc 所有栏目
 @api.route('/categories/')
 def get_categories():
     categories = Category.query.filter(
@@ -59,6 +61,7 @@ def get_categories():
         'categories': [category.to_json() for category in categories]
     })
 
+# @desc 指定栏目下的子栏目
 @api.route('/categories/<int:id>')
 def get_categories_by_id(id):
     categories = Category.query.filter(
@@ -67,6 +70,7 @@ def get_categories_by_id(id):
         'categories': [category.to_json() for category in categories]
     })
 
+# @desc 栏目下的文章
 @api.route('/category_posts/<int:id>')
 def get_category_posts(id):
     category = Category.query.get_or_404(id)

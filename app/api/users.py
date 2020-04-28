@@ -77,6 +77,7 @@ def get_user(id):
 def get_user_self():
     return jsonify(g.current_user.to_json())
 
+# @desc: 修改密码
 @api.route('/user_change_password/', methods=['POST'])
 @auth.login_required
 def user_change_password():
@@ -97,6 +98,7 @@ def user_change_password():
     except Exception as e:
         return bad_request('错误原因：%s' % repr(e))
 
+# @desc: 编辑资料
 @api.route('/user_edit_profile/', methods=['POST'])
 @auth.login_required
 def user_edit_profile():

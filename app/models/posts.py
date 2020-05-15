@@ -8,6 +8,7 @@ class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(256))
     body = db.Column(db.Text)
+    body_html = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
@@ -22,6 +23,7 @@ class Post(db.Model):
             'id': self.id,
             'title': self.title,
             'body': self.body,
+            'body_html': self.body_html,
             'timestamp': self.timestamp,
             'author': self.author.to_json(),
             'category': self.category.to_json(),

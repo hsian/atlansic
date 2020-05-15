@@ -14,6 +14,7 @@ class Config:
 	MAIL_SUBJECT_PREFIX = 'Learn Flask'
 
 	ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', '13312882472')
+	ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD')
 	SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 	PER_PAGE = 5
@@ -38,8 +39,9 @@ class TestingConfig(Config):
 	WTF_CSRF_ENABLED = False
 
 class ProductionConfig(Config):
-	password = os.getenv('MYSQL_PASSWORD') or ""
-	SQLALCHEMY_DATABASE_URI = 'mysql://root:' + password + '@localhost/atl'
+	# password = os.getenv('MYSQL_PASSWORD') or ""
+	# SQLALCHEMY_DATABASE_URI = 'mysql://root:' + password + '@localhost/atl'
+	SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'data-pro.sqlite')
 
 	@classmethod
 	def init_app(cls, app):

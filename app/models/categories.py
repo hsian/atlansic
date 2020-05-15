@@ -10,6 +10,7 @@ class Category(db.Model):
     summary =  db.Column(db.Text())
     level = db.Column(db.Integer)
     parent_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
+    top_parent_id = db.Column(db.Integer)
     chilren = db.relationship('Category')
     enable = db.Column(db.Boolean, default=True)
     posts = db.relationship('Post', backref='category', lazy='dynamic')
@@ -42,6 +43,7 @@ class Category(db.Model):
             'summary': self.summary,
             'level': self.level,
             'children': [category.to_json() for category in self.chilren],
-            'enable': self.enable
+            'enable': self.enable,
+            'top_parent_id': self.top_parent_id
         }
         return json_categories

@@ -154,7 +154,19 @@ class User(UserMixin, db.Model):
         foreign_keys=[Message.receiver_id],
         backref=db.backref('receiver', lazy='joined'),
         lazy='dynamic',
-        cascade='all, delete-orphan') 
+        cascade='all, delete-orphan')
+
+    @staticmethod
+    def insert_admin():
+        user = User(
+            username = 'admin',
+            email = current_app.config['ADMIN_USERNAME'],
+            password = current_app.config['ADMIN_PASSWORD'],
+            role = Role.query.filter_by(name='Administrator').first(),
+            confirmed = True
+        )
+        db.session.add(user)
+        db.session.commit() 
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)

@@ -314,6 +314,7 @@ db.session.add(current_user._get_current_object())
 生产环境变量
 
 ```js
+set FLASK_APP=server.py
 set FLASK_CONFIG=production
 set MYSQL_PASSWORD=数据库密码 
 ```

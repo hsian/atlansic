@@ -66,7 +66,7 @@ def get_post(id):
 def new_post():
     try:
         form = request.json
-        title, body, category_id = form['title'], form['body'], \
+        title, body, body_html, category_id = form['title'], form['body'], form['body_html'],\
             form['category_id']
 
         # 禁止提交到public栏目
@@ -76,6 +76,7 @@ def new_post():
         post = Post(
             title = title,
             body = body,
+            body_html = body_html,
             author = g.current_user,
             category_id = category_id
         )
@@ -105,6 +106,7 @@ def edit_post(id):
             return forbidden('权限不够')
         post.title = request.json.get('title', post.title)
         post.body = request.json.get('body', post.body)
+        post.body_html = request.json.get('body_html', post.body_html)
         post.enable = request.json.get('enable', post.enable)
         post.category_id = request.json.get('category_id', post.category_id)
         tags = request.json.get('tags')

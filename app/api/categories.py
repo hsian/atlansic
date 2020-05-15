@@ -17,10 +17,30 @@ def new_category():
         name, summary, parent_id = form['name'], form.get('summary'), \
             form.get('parent_id')
         
+
+        def loop(pid):
+            top_parent_id = ''
+            if pid is None:
+                return
+            top_parent = Category.query.filter_by(id = pid).first()
+
+            if top_parent:
+                print(top_parent.id)
+                top_parent_id = top_parent.id
+                if top_parent.parent_id:
+                    return loop(top_parent.parent_id)
+            return top_parent_id
+
+        top_parent_id = loop(parent_id)
+        print('123123123')
+        print(top_parent_id)
+        print('546456456')
+
         category = Category(
             name = name,
             summary = summary,
-            parent_id = parent_id
+            parent_id = parent_id,
+            top_parent_id = top_parent_id
         )
         db.session.add(category)
         db.session.commit()
